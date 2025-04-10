@@ -1,6 +1,7 @@
 package com.beelac.medstorebackend.dao;
 
 import com.beelac.medstorebackend.model.Product;
+
 import java.util.List;
 
 public interface ProductDao {

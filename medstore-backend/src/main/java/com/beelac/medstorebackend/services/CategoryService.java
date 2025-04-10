@@ -1,5 +1,17 @@
 package com.beelac.medstorebackend.services;
 
-public interface CategoryService {
+import com.beelac.medstorebackend.model.Category;
 
+import java.util.List;
+
+public interface CategoryService {
+	List<Category> getAllCategories();
+
+	Category getCategoryById(int id);
+
+	void addCategory(Category category);
+
+	void updateCategory(Category category);
+
+	void deleteCategory(int id);
 }

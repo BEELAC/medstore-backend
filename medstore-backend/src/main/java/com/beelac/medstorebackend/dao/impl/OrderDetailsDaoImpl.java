@@ -5,10 +5,13 @@ import com.beelac.medstorebackend.model.OrderDetails;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+@Repository
 public class OrderDetailsDaoImpl implements OrderDetailsDao {
 
 	@Autowired
@@ -40,7 +43,7 @@ public class OrderDetailsDaoImpl implements OrderDetailsDao {
     }
 
     @Override
-    public OrderDetails getOrderDetailById(int orderDetailId) {
+    public OrderDetails getOrderDetailsById(int orderDetailId) {
         String sql = "SELECT * FROM ORDER_DETAILS WHERE id = ?";
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToOrderDetails(rs), orderDetailId);
     }
