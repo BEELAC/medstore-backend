@@ -2,6 +2,8 @@ package com.beelac.medstorebackend.model;
 
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class User {
 	
 	private int id;
@@ -15,6 +17,8 @@ public class User {
 	private String phone;
 	private Timestamp createdOn;
 	private Timestamp modifiedOn;
+	
+	@JsonProperty("isAdmin")
 	private boolean isAdmin;
 
 	/* Constructor */
@@ -129,6 +133,7 @@ public class User {
 		this.modifiedOn = modifiedOn;
 	}
 
+	@JsonProperty("isAdmin")
 	public boolean isAdmin() {
 		return isAdmin;
 	}

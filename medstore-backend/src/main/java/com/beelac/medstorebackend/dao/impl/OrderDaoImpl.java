@@ -54,4 +54,9 @@ public class OrderDaoImpl implements OrderDao {
         jdbcTemplate.update(sql, status, orderId);
     }
 
+	@Override
+	public List<Order> getAllOrders() {
+	    String sql = "SELECT * FROM ORDERS";
+	    return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToOrder(rs));
+	}
 }

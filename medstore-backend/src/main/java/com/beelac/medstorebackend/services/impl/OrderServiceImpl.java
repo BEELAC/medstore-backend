@@ -20,6 +20,10 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
+	public List<Order> getAllOrders() {
+		return orderDao.getAllOrders();
+	}
+	@Override
 	public Order getOrderById(int id) {
 		return orderDao.getOrderById(id);
 	}

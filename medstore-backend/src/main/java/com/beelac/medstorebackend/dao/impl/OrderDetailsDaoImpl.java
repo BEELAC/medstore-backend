@@ -31,9 +31,9 @@ public class OrderDetailsDaoImpl implements OrderDetailsDao {
 
     @Override
     public void addOrderDetails(OrderDetails orderDetails) {
-        String sql = "INSERT INTO ORDER_DETAILS (orderId, productId, quantity, price, total) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO ORDER_DETAILS (orderId, productId, quantity, price) VALUES (?, ?, ?, ?)";
         jdbcTemplate.update(sql, orderDetails.getOrderId(), orderDetails.getProductId(), orderDetails.getQuantity(),
-                orderDetails.getPrice(), orderDetails.getTotal());
+                orderDetails.getPrice());
     }
 
     @Override

@@ -10,15 +10,15 @@ public class OrderDetails {
 	private int productId;
 	private int quantity;
 	private BigDecimal price;
-	private BigDecimal total; /* Generated in DB */
+	private BigDecimal total; // Generated in DB
 	private Timestamp createdOn;
 	
-	/* Constructor */
+	// Constructor
 	public OrderDetails() {
 
 	}
 	
-	/* Constructor w/ Attributes */
+	// Constructor w/ Attributes
 	public OrderDetails(int id, int orderId, int productId, int quantity, BigDecimal amount, BigDecimal total) {
 		super();
 		this.id = id;
@@ -29,7 +29,7 @@ public class OrderDetails {
 		this.total = total;
 	}
 
-	/* Getters and Setters */
+	// Getters and Setters
 	public int getId() {
 		return id;
 	}
@@ -86,7 +86,7 @@ public class OrderDetails {
 		this.price = price;
 	}
 	
-	/* toString */
+	// toString
 	@Override
 	public String toString() {
 		return "OrderDetails [id=" + id + ", orderId=" + orderId + ", productId=" + productId + ", quantity=" + quantity
