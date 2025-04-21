@@ -1,6 +1,7 @@
 package com.beelac.medstorebackend.model;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 public class Order {
 

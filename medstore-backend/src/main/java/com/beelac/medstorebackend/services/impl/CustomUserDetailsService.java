@@ -1,40 +1,40 @@
 package com.beelac.medstorebackend.services.impl;
 
-import com.beelac.medstorebackend.dao.UserDao;
 import com.beelac.medstorebackend.model.User;
-
+import com.beelac.medstorebackend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.*;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UserDao userDao;
+    private UserService userService;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userDao.getUserByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        System.out.println("Attempting login lookup for: " + email);
+
+        User user = userService.getUserByEmail(email);
+
         if (user == null) {
-            throw new UsernameNotFoundException("User not found.");
+            System.out.println("User not found: " + email);
+            throw new UsernameNotFoundException("User not found with email: " + email);
         }
 
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-
-        if (user.isAdmin()) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        }
+        String role = user.isAdmin() ? "ROLE_ADMIN" : "ROLE_CUSTOMER";
+        System.out.println("User found: " + user.getEmail() + " | Role: " + role);
 
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                authorities
+                user.getEmail(),
+                user.getPassword(), // this should be the hashed one
+                Collections.singletonList(new SimpleGrantedAuthority(role))
         );
     }
 }

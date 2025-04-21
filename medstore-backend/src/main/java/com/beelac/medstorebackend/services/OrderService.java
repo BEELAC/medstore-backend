@@ -14,4 +14,6 @@ public interface OrderService {
 	List<Order> getOrdersByUserId(int userId);
 	
 	List<Order> getAllOrders();
+	
+	void placeOrderFromCart(int userId);
 }

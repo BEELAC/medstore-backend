@@ -1,66 +1,61 @@
 package com.beelac.medstorebackend.config;
 
-import com.beelac.medstorebackend.services.impl.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    public UserDetailsService userDetailsService(CustomUserDetailsService customUserDetailsService) {
-        return customUserDetailsService;
-    }
+	private final CustomAuthenticationProvider customAuthProvider;
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	public SecurityConfig(CustomAuthenticationProvider customAuthProvider) {
+		this.customAuthProvider = customAuthProvider;
+	}
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider(CustomUserDetailsService customUserDetailsService) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(customUserDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
-    }
+	@SuppressWarnings("deprecation")
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return NoOpPasswordEncoder.getInstance();
+	}
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
+	@Bean
+	public AuthenticationManager authenticationManager() {
+		return new ProviderManager(customAuthProvider);
+	}
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable()) // only for development
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                	"/users/**",
-                    "/users/register",
-                    "/products/**",
-                    "/categories/**",
-                    "/cart/**",
-                    "/cart-details/**",
-                    "/auth/login"
-                ).permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN") // Admin-only
-                .requestMatchers("/orders/**", "/order-details/**").authenticated() // Authenticated users
-                .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults())
-            .logout(Customizer.withDefaults());
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	    http.csrf(csrf -> csrf.disable())
+	    	.cors(Customizer.withDefaults())
+	        .authenticationProvider(customAuthProvider)
+	        .authorizeHttpRequests(auth -> auth
+	            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+	            .requestMatchers("/auth/login").permitAll()
+	            .requestMatchers("/users/**").permitAll()
+	            .requestMatchers("/products/**").permitAll()
+	            .requestMatchers("/categories/**").permitAll()
+	            .requestMatchers("/cart/**", "/cart-details/**").permitAll()
+	            .requestMatchers("/orders/**", "/order-details/**").permitAll()
+	            .requestMatchers("/admin/**").hasRole("ADMIN")
+	            .anyRequest().authenticated()
+	        )
+	        .sessionManagement(session -> session
+	        	    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+	        	)
+	        .formLogin(Customizer.withDefaults())
+	        .logout(logout -> logout.permitAll());
 
-        return http.build();
-    }
+	    return http.build();
+	}
 }

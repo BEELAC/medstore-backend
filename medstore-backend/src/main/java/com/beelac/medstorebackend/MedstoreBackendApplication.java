@@ -9,5 +9,5 @@ public class MedstoreBackendApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(MedstoreBackendApplication.class, args);
 	}
-
+	
 }

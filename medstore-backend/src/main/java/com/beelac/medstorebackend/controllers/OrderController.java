@@ -2,30 +2,37 @@ package com.beelac.medstorebackend.controllers;
 
 import com.beelac.medstorebackend.model.Order;
 import com.beelac.medstorebackend.services.OrderService;
+import com.beelac.medstorebackend.services.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")  // Admin-only
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Order>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
-    
+
     @PostMapping
-    public ResponseEntity<Void> createOrder(@RequestBody Order order) {
+    public ResponseEntity<Void> createOrder(@RequestBody Order order, Authentication authentication) {
+        System.out.println("Authenticated user: " + authentication.getName());
+        System.out.println("Creating order: " + order);
         orderService.createOrder(order);
         return ResponseEntity.ok().build();
     }
@@ -45,5 +52,15 @@ public class OrderController {
     public ResponseEntity<Void> updateOrderStatus(@PathVariable int id, @RequestParam String status) {
         orderService.updateOrderStatus(id, status);
         return ResponseEntity.ok().build();
+    }
+
+    // new checkout endpoint
+    @PostMapping("/checkout")
+    public ResponseEntity<String> checkoutFromCart(Authentication auth) {
+        String email = auth.getName();
+        int userId = userService.getUserByEmail(email).getId();
+
+        orderService.placeOrderFromCart(userId);
+        return ResponseEntity.ok("Order placed successfully.");
     }
 }

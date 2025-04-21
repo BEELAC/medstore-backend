@@ -4,6 +4,7 @@ import com.beelac.medstorebackend.dao.UserDao;
 import com.beelac.medstorebackend.model.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -31,7 +32,7 @@ public class UserDaoImpl implements UserDao {
 	    user.setPhone(rs.getString("phone"));
 	    user.setCreatedOn(rs.getTimestamp("created_on"));
 	    user.setModifiedOn(rs.getTimestamp("modified_on"));
-	    user.setAdmin(rs.getBoolean("isAdmin"));
+	    user.setIsAdmin(rs.getBoolean("isAdmin"));
 	    return user;
 	}
 	
@@ -62,6 +63,23 @@ public class UserDaoImpl implements UserDao {
 	public User getUserByUsername(String username) {
 		String sql = "SELECT * FROM USER WHERE username = ?";
 		return jdbcTemplate.queryForObject(sql, this::mapRowToUser, username);
+	}
+	
+	@Override
+	public User getUserByEmail(String email) {
+	    String sql = "SELECT * FROM USER WHERE email = ?";
+	    try {
+	        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+	            User user = new User();
+	            user.setId(rs.getInt("id"));
+	            user.setEmail(rs.getString("email"));
+	            user.setPassword(rs.getString("password"));
+	            user.setIsAdmin(rs.getBoolean("isAdmin"));
+	            return user;
+	        }, email);
+	    } catch (EmptyResultDataAccessException e) {
+	        return null;
+	    }
 	}
 
 	@Override

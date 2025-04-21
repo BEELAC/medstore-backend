@@ -4,7 +4,7 @@ import com.beelac.medstorebackend.model.Order;
 import java.util.List;
 
 public interface OrderDao {
-	void createOrder(Order order);
+	int createOrder(Order order);
 
 	List<Order> getOrdersByUserId(int userId);
 

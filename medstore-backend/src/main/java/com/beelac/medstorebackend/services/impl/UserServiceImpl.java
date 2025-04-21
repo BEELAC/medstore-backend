@@ -5,7 +5,6 @@ import com.beelac.medstorebackend.model.User;
 import com.beelac.medstorebackend.services.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,12 +13,11 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
-    private final BCryptPasswordEncoder passwordEncoder;
+
 
     @Autowired
-    public UserServiceImpl(UserDao userDao, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserDao userDao) {
         this.userDao = userDao;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -31,6 +29,11 @@ public class UserServiceImpl implements UserService {
     public User getUserByUsername(String username) {
         return userDao.getUserByUsername(username);
     }
+    
+    @Override
+    public User getUserByEmail(String email) {
+        return userDao.getUserByEmail(email);
+    }
 
     @Override
     public List<User> getAllUsers() {
@@ -39,8 +42,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void createUser(User user) {
-    	user.setPassword(passwordEncoder.encode(user.getPassword()));
-    	userDao.createUser(user);
+        userDao.createUser(user);
     }
 
     @Override
