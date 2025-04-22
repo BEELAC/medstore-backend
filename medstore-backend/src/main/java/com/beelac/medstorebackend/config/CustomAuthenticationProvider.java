@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -18,6 +19,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
     private UserService userService;
+    private PasswordEncoder passwordEncoder;
+    
+    public CustomAuthenticationProvider(UserService userService, PasswordEncoder passwordEncoder) {
+        this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -35,14 +42,16 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         }
 
         System.out.println("Password in DB: " + user.getPassword());
+        System.out.println("Password match result: " + passwordEncoder.matches(rawPassword, user.getPassword()));
 
-        if (!user.getPassword().equals(rawPassword)) {
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             System.out.println("Password mismatch");
             throw new BadCredentialsException("Invalid password");
         }
 
         String role = user.isAdmin() ? "ROLE_ADMIN" : "ROLE_CUSTOMER";
-        System.out.println("✅ Authenticated: " + email + " | Role: " + role);
+        System.out.println("Authenticated: " + email + " | Role: " + role);
 
         return new UsernamePasswordAuthenticationToken(
             email,

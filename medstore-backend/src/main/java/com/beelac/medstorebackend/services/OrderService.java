@@ -1,13 +1,12 @@
 package com.beelac.medstorebackend.services;
 
 import com.beelac.medstorebackend.model.Order;
+import com.beelac.medstorebackend.model.OrderRequest;
 
 import java.util.List;
 
 public interface OrderService {
 	Order getOrderById(int id);
-
-	void createOrder(Order order);
 
 	void updateOrderStatus(int orderId, String status);
 
@@ -15,5 +14,5 @@ public interface OrderService {
 	
 	List<Order> getAllOrders();
 	
-	void placeOrderFromCart(int userId);
+	int createOrder(OrderRequest request);
 }

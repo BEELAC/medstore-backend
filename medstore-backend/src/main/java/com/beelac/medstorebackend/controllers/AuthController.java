@@ -39,18 +39,30 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         try {
+        	System.out.println("[AuthController] Login endpoint hit for: " + request.getEmail());
+
+        	// test DB lookup before trying to authenticate
+            User testUser = userService.getUserByEmail(request.getEmail());
+            if (testUser != null) {
+                System.out.println("DB Lookup Successful: " + testUser.getEmail());
+            } else {
+                System.out.println("DB Lookup FAILED: No user found with that email");
+            }
+            
             UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
 
             Authentication auth = authenticationManager.authenticate(authToken);
 
-            // ✅ store in security context
+            // store in security context
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            // ✅ force Spring to bind context to session
+            // force Spring to bind context to session
             HttpSession session = httpRequest.getSession(true);
             session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
 
+            System.out.println("Session ID: " + session.getId());
+            
             User user = userService.getUserByEmail(request.getEmail());
 
             Map<String, Object> response = new HashMap<>();
@@ -60,8 +72,13 @@ public class AuthController {
 
             return ResponseEntity.ok(response);
 
-        } catch (AuthenticationException e) {
+        }  catch (AuthenticationException e) {
+            System.out.println("Authentication Exception: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception ex) {
+            System.out.println("Unexpected Exception: " + ex.getMessage());
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

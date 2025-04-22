@@ -1,13 +1,13 @@
 package com.beelac.medstorebackend.controllers;
 
 import com.beelac.medstorebackend.model.Order;
+import com.beelac.medstorebackend.model.OrderRequest;
 import com.beelac.medstorebackend.services.OrderService;
-import com.beelac.medstorebackend.services.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,9 +20,6 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    @Autowired
-    private UserService userService;
-
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Order>> getAllOrders() {
@@ -30,11 +27,22 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createOrder(@RequestBody Order order, Authentication authentication) {
-        System.out.println("Authenticated user: " + authentication.getName());
-        System.out.println("Creating order: " + order);
-        orderService.createOrder(order);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> createOrder(@RequestBody OrderRequest orderRequest) {
+    	System.out.println("Incoming order payload: " + orderRequest);
+
+    	if (orderRequest.getItems() == null) {
+    	    System.out.println("orderRequest.getItems() is NULL");
+    	} else {
+    	    System.out.println("Items received: " + orderRequest.getItems());
+    	}
+    	
+        try {
+            int orderId = orderService.createOrder(orderRequest);
+            return ResponseEntity.ok("Order placed successfully with ID: " + orderId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to place order");
+        }
     }
 
     @GetMapping("/user/{userId}")
@@ -52,15 +60,5 @@ public class OrderController {
     public ResponseEntity<Void> updateOrderStatus(@PathVariable int id, @RequestParam String status) {
         orderService.updateOrderStatus(id, status);
         return ResponseEntity.ok().build();
-    }
-
-    // new checkout endpoint
-    @PostMapping("/checkout")
-    public ResponseEntity<String> checkoutFromCart(Authentication auth) {
-        String email = auth.getName();
-        int userId = userService.getUserByEmail(email).getId();
-
-        orderService.placeOrderFromCart(userId);
-        return ResponseEntity.ok("Order placed successfully.");
     }
 }

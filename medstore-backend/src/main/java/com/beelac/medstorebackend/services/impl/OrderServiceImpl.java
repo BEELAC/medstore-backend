@@ -2,22 +2,15 @@ package com.beelac.medstorebackend.services.impl;
 
 import com.beelac.medstorebackend.dao.OrderDao;
 import com.beelac.medstorebackend.dao.OrderDetailsDao;
-import com.beelac.medstorebackend.dao.ProductDao;
-import com.beelac.medstorebackend.model.Cart;
-import com.beelac.medstorebackend.model.CartDetails;
 import com.beelac.medstorebackend.model.Order;
 import com.beelac.medstorebackend.model.OrderDetails;
-import com.beelac.medstorebackend.model.Product;
-import com.beelac.medstorebackend.services.CartDetailsService;
-import com.beelac.medstorebackend.services.CartService;
+import com.beelac.medstorebackend.model.OrderItem;
+import com.beelac.medstorebackend.model.OrderRequest;
 import com.beelac.medstorebackend.services.OrderService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -25,21 +18,11 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderDao orderDao;
     private final OrderDetailsDao orderDetailsDao;
-    private final CartService cartService;
-    private final CartDetailsService cartDetailsService;
-    private final ProductDao productDao;
 
     @Autowired
-    public OrderServiceImpl(OrderDao orderDao,
-                            OrderDetailsDao orderDetailsDao,
-                            CartService cartService,
-                            CartDetailsService cartDetailsService,
-                            ProductDao productDao) {
+    public OrderServiceImpl(OrderDao orderDao, OrderDetailsDao orderDetailsDao) {
         this.orderDao = orderDao;
         this.orderDetailsDao = orderDetailsDao;
-        this.cartService = cartService;
-        this.cartDetailsService = cartDetailsService;
-        this.productDao = productDao;
     }
 
     @Override
@@ -53,11 +36,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void createOrder(Order order) {
-        orderDao.createOrder(order);
-    }
-
-    @Override
     public void updateOrderStatus(int orderId, String status) {
         orderDao.updateOrderStatus(orderId, status);
     }
@@ -67,43 +45,30 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getOrdersByUserId(userId);
     }
 
-    // ✅ New checkout logic
     @Override
-    public void placeOrderFromCart(int userId) {
-        Cart cart = cartService.getCartByUserId(userId);
-        if (cart == null) {
-            throw new IllegalArgumentException("No cart found for user.");
-        }
-
-        int cartId = cart.getId();
-        List<CartDetails> items = cartDetailsService.getProductsInCart(cartId);
-
-        if (items == null || items.isEmpty()) {
-            throw new IllegalArgumentException("Cart is empty.");
-        }
-
+    public int createOrder(OrderRequest request) {
         Order order = new Order();
-        order.setUserId(userId);
+        order.setUserId(request.getUserId());
+        order.setPaymentMethod(request.getPaymentMethod());
+        order.setPaymentStatus(request.getPaymentStatus());
+        order.setAmount(request.getAmount());
+        order.setOrderStatus(request.getOrderStatus());
 
+        // insert into orders table
         int orderId = orderDao.createOrder(order);
 
-        for (CartDetails item : items) {
-            Product product = productDao.getProductById(item.getProductId());
-            if (product == null) continue;
-
+        // insert each item into order_details
+        for (OrderItem item : request.getItems()) {
             OrderDetails details = new OrderDetails();
             details.setOrderId(orderId);
             details.setProductId(item.getProductId());
             details.setQuantity(item.getQuantity());
-            details.setPrice(product.getPrice());
-            details.setTotal(product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+            details.setPrice(item.getPrice());
+            details.setTotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
 
             orderDetailsDao.addOrderDetails(details);
         }
 
-        // clear cart after order is placed
-        for (CartDetails item : items) {
-            cartDetailsService.removeProductFromCart(cartId, item.getProductId());
-        }
+        return orderId;
     }
 }
